@@ -11,15 +11,18 @@ import (
 
 func main() {
 	srv := server.New()
-	if err := srv.Start(); err != nil {
-		log.Fatal(err)
-	}
 
-	// Graceful shutdown
+	go func() {
+		if err := srv.Start(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
+	log.Println("Shutting down...")
 	if err := db.Close(); err != nil {
 		log.Printf("Error closing DB: %v", err)
 	}

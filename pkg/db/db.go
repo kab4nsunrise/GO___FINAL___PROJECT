@@ -42,6 +42,7 @@ func Close() error {
 	}
 	return nil
 }
+
 func GetDB() *sql.DB {
 	return db
 }
