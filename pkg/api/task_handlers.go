@@ -109,21 +109,25 @@ func normalizeTaskDate(task *db.Task) error {
 	if task.Date == "" {
 		task.Date = now.Format(dateFormat)
 	}
-	parsedDate, err := time.Parse(dateFormat, task.Date)
+
+	_, err := time.Parse(dateFormat, task.Date)
 	if err != nil {
 		return fmt.Errorf("invalid date format")
 	}
+	today := now.Format(dateFormat)
+
 	if task.Repeat != "" {
 		next, err := NextDate(now, task.Date, task.Repeat)
 		if err != nil {
 			return fmt.Errorf("repeat rule error: %v", err)
 		}
-		if !parsedDate.After(now) {
+
+		if task.Date < today {
 			task.Date = next
 		}
 	} else {
-		if !parsedDate.After(now) {
-			task.Date = now.Format(dateFormat)
+		if task.Date < today {
+			task.Date = today
 		}
 	}
 	return nil

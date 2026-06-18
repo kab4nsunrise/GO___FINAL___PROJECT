@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -31,17 +32,33 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			return "", fmt.Errorf("invalid days")
 		}
 		next := start
-		for !next.After(now) {
+		for {
 			next = next.AddDate(0, 0, days)
+			log.Printf("d: next=%s, now=%s", next.Format(dateFormat), now.Format(dateFormat))
+			if next.After(now) {
+				break
+			}
 		}
-		return next.Format(dateFormat), nil
+		result := next.Format(dateFormat)
+		log.Printf("d returning: %s", result)
+		return result, nil
 
 	case "y":
 		next := start
-		for !next.After(now) {
+		for {
 			next = next.AddDate(1, 0, 0)
+			log.Printf("y: next=%s, now=%s", next.Format(dateFormat), now.Format(dateFormat))
+			if next.Month() == time.February && next.Day() == 29 && next.Year()%4 != 0 {
+				next = time.Date(next.Year(), time.March, 1, 0, 0, 0, 0, next.Location())
+				log.Printf("y corrected to: %s", next.Format(dateFormat))
+			}
+			if next.After(now) {
+				break
+			}
 		}
-		return next.Format(dateFormat), nil
+		result := next.Format(dateFormat)
+		log.Printf("y returning: %s", result)
+		return result, nil
 
 	default:
 		return "", fmt.Errorf("unsupported rule: %s", rule)
@@ -72,5 +89,7 @@ func nextDateHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	w.Write([]byte(next))
+	if _, err := w.Write([]byte(next)); err != nil {
+		http.Error(w, "write error", http.StatusInternalServerError)
+	}
 }

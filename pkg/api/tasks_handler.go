@@ -5,9 +5,10 @@ import (
 	"todo/pkg/db"
 )
 
+const defaultTasksLimit = 50
+
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
-	limit := 50
-	tasks, err := db.Tasks(limit)
+	tasks, err := db.Tasks(defaultTasksLimit)
 	if err != nil {
 		errorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
