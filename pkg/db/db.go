@@ -24,18 +24,24 @@ func Init(dbFile string) error {
 	var err error
 	db, err = sql.Open("sqlite", dbFile)
 	if err != nil {
-		log.Printf("Failed to open DB: %v", err)
+		log.Printf("Open error: %v", err)
 		return err
 	}
 	_, err = db.Exec(schema)
 	if err != nil {
-		log.Printf("Failed to create table: %v", err)
+		log.Printf("Exec error: %v", err)
 		return err
 	}
-	log.Println("Database initialized successfully")
+	log.Println("Database initialized")
 	return nil
 }
 
+func Close() error {
+	if db != nil {
+		return db.Close()
+	}
+	return nil
+}
 func GetDB() *sql.DB {
 	return db
 }
